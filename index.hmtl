@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Fi Provisioning Dashboard</title>
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --panel-bg: rgba(17, 24, 39, 0.7);
+            --border-ui: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --cyan-glow: #06b6d4;
+            --cyan-hover: #0891b2;
+            --emerald-alert: #10b981;
+            --amber-alert: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            background-image: radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.12), transparent 50%),
+                              radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.04), transparent 50%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-ui);
+            border-radius: 28px;
+            padding: 36px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .input-control {
+            width: 100%;
+            background: rgba(13, 18, 30, 0.7);
+            border: 1px solid var(--border-ui);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .input-control:focus {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+        }
+
+        select.input-control {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 14px;
+            padding-right: 44px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--cyan-glow);
+            color: #0b0f19;
+            border: none;
+            border-radius: 14px;
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 6px;
+        }
+
+        .btn-submit:hover {
+            background: var(--cyan-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            background: #1e293b;
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-box {
+            margin-top: 32px;
+            padding: 18px;
+            background: rgba(10, 15, 26, 0.5);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 13px;
+            gap: 12px;
+        }
+
+        .status-label {
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .status-value {
+            font-weight: 500;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-idle { background: rgba(6, 182, 212, 0.12); color: var(--cyan-glow); }
+        .badge-processing { background: rgba(245, 158, 11, 0.12); color: var(--amber-alert); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Device Provisioning</h1>
+        <p>Pengontrol Jaringan Nirkabel Perangkat IoT</p>
+    </div>
+
+    <div class="form-group">
+        <label for="ssid-select">Jaringan Terdeteksi Perangkat</label>
+        <select id="ssid-select" class="input-control">
+            <option value="">Memuat enkapsulasi sinyal dari ESP32...</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="wifi-password">Kunci Keamanan Jaringan (Password)</label>
+        <input type="password" id="wifi-password" class="input-control" placeholder="Masukkan kata sandi Wi-Fi">
+    </div>
+
+    <button id="submit-btn" class="btn-submit" disabled>Hubungkan Perangkat</button>
+
+    <div class="status-box">
+        <div class="status-row">
+            <span class="status-label">Log Aktivitas:</span>
+            <span id="device-status" class="status-value">Menghubungkan ke server cloud...</span>
+        </div>
+        <div class="badge-container">
+            <span class="status-label" style="font-size: 13px;">Mode Perangkat:</span>
+            <span id="command-status" class="badge badge-idle">IDLE</span>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Menggunakan Firebase JavaScript SDK v10 CDN resmi
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // Integrasi Konfigurasi Web App Database Milik Anda Secara Eksak
+    const firebaseConfig = {
+        apiKey: "AIzaSyBmZR9PeOQIdHBwV5USTxU3_41KfIbw9tQ",
+        authDomain: "kwtabiyoso.firebaseapp.com",
+        databaseURL: "https://kwtabiyoso-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "kwtabiyoso",
+        storageBucket: "kwtabiyoso.firebasestorage.app",
+        messagingSenderId: "1074176217961",
+        appId: "1:1074176217961:web:1ffea7385504149f5da3f8",
+        measurementId: "G-BMC8S9KX3D"
+    };
+
+    // Alur Inisialisasi Layanan Cloud Proyek
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const referenceDokumen = doc(db, "wifi_provisioning", "device_01");
+
+    const ssidSelect = document.getElementById('ssid-select');
+    const passwordInput = document.getElementById('wifi-password');
+    const submitBtn = document.getElementById('submit-btn');
+    const txtDeviceStatus = document.getElementById('device-status');
+    const txtCommandStatus = document.getElementById('command-status');
+
+    // Pengamat Real-Time (Listener) Terhadap Perubahan Status di Firestore
+    onSnapshot(referenceDokumen, (snapshot) => {
+        if (snapshot.exists()) {
+            const dataFirestore = snapshot.data();
+            
+            // Perbarui Log Teks Status Perangkat
+            if (dataFirestore.status) {
+                txtDeviceStatus.innerText = dataFirestore.status;
+            }
+
+            // Perbarui Indikator Badge Command Sistem
+            if (dataFirestore.command) {
+                txtCommandStatus.innerText = dataFirestore.command;
+                txtCommandStatus.className = 'badge'; // Reset kelas CSS awal
+                
+                if (dataFirestore.command === 'IDLE') {
+                    txtCommandStatus.classList.add('badge-idle');
+                    // Tombol aktif kembali hanya jika dropdown SSID telah dipilih user
+                    submitBtn.disabled = !ssidSelect.value;
+                } else {
+                    txtCommandStatus.classList.add('badge-processing');
+                    submitBtn.disabled = true; // Kunci input tombol ketika sistem sedang sibuk mengeksekusi koneksi
+                }
+            }
+
+            // Memproses Data String untuk Populasi Komponen Dropdown Menu Wi-Fi
+            if (dataFirestore.ssids) {
+                const nilaiSeleksiSaatIni = ssidSelect.value;
+                ssidSelect.innerHTML = '<option value="">-- Pilih Wi-Fi Terdeteksi --</option>';
+                
+                const arrayJaringan = dataFirestore.ssids.split(',');
+                arrayJaringan.forEach(ssid => {
+                    const ssidBersih = ssid.trim();
+                    if (ssidBersih) {
+                        const elemenOpsi = document.createElement('option');
+                        elemenOpsi.value = ssidBersih;
+                        elemenOpsi.innerText = ssidBersih;
+                        ssidSelect.appendChild(elemenOpsi);
+                    }
+                });
+                
+                // Menjaga agar pilihan user tidak ter-reset secara mendadak saat sinkronisasi data background terjadi
+                if (nilaiSeleksiSaatIni && dataFirestore.ssids.includes(nilaiSeleksiSaatIni)) {
+                    ssidSelect.value = nilaiSeleksiSaatIni;
+                }
+            }
+        } else {
+            txtDeviceStatus.innerText = "Basis dokumen data belum terinisialisasi oleh ESP32.";
+        }
+    });
+
+    // Validasi interaktif perubahan dropdown menu
+    ssidSelect.addEventListener('change', () => {
+        if (ssidSelect.value && txtCommandStatus.innerText === 'IDLE') {
+            submitBtn.disabled = false;
+        } else {
+            submitBtn.disabled = true;
+        }
+    });
+
+    // Event Handler untuk Pengiriman Kredensial Baru ke Cloud Database
+    submitBtn.addEventListener('click', async () => {
+        const ssidTerpilih = ssidSelect.value;
+        const passwordInputan = passwordInput.value;
+
+        if (!ssidTerpilih) return;
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Mengirim Kredensial...";
+
+        try {
+            // Memperbarui isi field dokumen Firestore
+            await updateDoc(referenceDokumen, {
+                target_ssid: ssidTerpilih,
+                target_password: passwordInputan,
+                command: "CONNECT",
+                status: "Menunggu perangkat memproses instruksi pemindahan sinyal jaringan..."
+            });
+            passwordInput.value = ""; // Menghapus isian field input password demi keamanan data privasi pengguna
+        } catch (error) {
+            console.error("Gagal melakukan injeksi instruksi data ke Firestore:", error);
+            alert("Terjadi kegagalan transmisi kontrol data ke server cloud.");
+        } finally {
+            submitBtn.innerText = "Hubungkan Perangkat";
+        }
+    });
+</script>
+
+</body>
+</html>
