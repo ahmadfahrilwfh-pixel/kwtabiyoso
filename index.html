@@ -516,19 +516,13 @@
             if(stream) { stream.getTracks().forEach(t => t.stop()); video.srcObject = null; laser.style.display = 'none'; stream = null;}
         }
 
-        btnCapture.addEventListener('click', async () => {
-            // Pengecekan kita pisah agar peringatannya jelas
-            if(!stream) { 
-                alert("Kamera belum aktif! Tunggu sampai gambar muncul atau cek error di layar."); 
-                return; 
-            }
-            if(GEMINI_KEY === "") { 
-                alert("API Key Gemini belum diisi!"); 
-                return; 
-            }
-
+      btnCapture.addEventListener('click', async () => {
+            if(!stream) { alert("Kamera belum aktif atau izin diblokir oleh browser!"); return; }
+            if(GEMINI_KEY === "") { alert("API Key Gemini belum diisi!"); return; }
+            
             laser.style.display = 'block';
             btnCapture.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+            document.getElementById('ai-text').innerHTML = "Mencari model AI yang diizinkan oleh Google...";
             
             const cvs = document.getElementById('snapshot-canvas');
             cvs.width = video.videoWidth; cvs.height = video.videoHeight;
@@ -540,30 +534,45 @@
                 { inline_data: { mime_type: "image/jpeg", data: b64 } }
             ]}]};
 
-try {
-                // 1. Mencoba model terbaru (1.5 Flash)
-                let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`;
-                let res = await fetch(url, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                });
-                let out = await res.json();
+            try {
+                // 1. CARA BRUTAL: Tanya langsung ke Google, model apa saja yang tersedia untuk API Key ini
+                const checkRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
+                const checkData = await checkRes.json();
                 
-                // 2. Jika ditolak karena "Not Found" (404), otomatis gunakan model cadangan (Pro Vision)
-                if (out.error && out.error.code === 404) {
-                    console.warn("Model 1.5 tidak ditemukan, mengalihkan ke model cadangan...");
-                    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-vision-latest:generateContent?key=${GEMINI_KEY}`;
-                    res = await fetch(fallbackUrl, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                    });
-                    out = await res.json();
+                if (checkData.error) throw new Error("Gagal cek model: " + checkData.error.message);
+
+                // 2. Filter dan ambil model pertama yang memiliki kata "gemini" dan mendukung pembuatan konten
+                let targetModel = "";
+                if (checkData.models) {
+                    for (let m of checkData.models) {
+                        if (m.name.includes("gemini") && m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")) {
+                            targetModel = m.name; 
+                            if (m.name.includes("flash")) break; // Jika ada versi flash, prioritaskan!
+                        }
+                    }
                 }
 
-                // 3. Cek error lainnya
+                // Jika Google membalas tapi daftarnya kosong
+                if (!targetModel) {
+                    throw new Error("API Key valid, tapi Project Google Cloud Anda TIDAK DIIZINKAN mengakses model Gemini apapun.");
+                }
+
+                document.getElementById('ai-text').innerHTML = `Ketemu! Memakai model: <b>${targetModel.replace('models/', '')}</b>...`;
+
+                // 3. Tembak API menggunakan model yang pasti ada di akunmu
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${GEMINI_KEY}`, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload)
+                });
+                
+                const out = await res.json();
+                
                 if (!res.ok || out.error) {
                     throw new Error(out.error ? out.error.message : "HTTP Error " + res.status);
                 }
 
-                // 4. Tampilkan hasil dari AI
+                // 4. Cetak hasil akhirnya!
                 if (out.candidates && out.candidates.length > 0) {
                     let txt = out.candidates[0].content.parts[0].text;
                     document.getElementById('ai-text').innerHTML = txt.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--neon-green)">$1</strong>');
@@ -573,7 +582,7 @@ try {
 
             } catch(e) { 
                 console.error("Detail Error Gemini:", e);
-                document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Ditolak Server:</b> ${e.message}</span>`; 
+                document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Error:</b> ${e.message}</span>`; 
             }
             
             laser.style.display = 'none';
