@@ -3,340 +3,562 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wi-Fi Provisioning Dashboard</title>
+    <title>Smart Garden Abiyoso - App Interface</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
+/* ================= VARIABEL & TEMA ================= */
         :root {
-            --bg-base: #090d16;
-            --panel-bg: rgba(17, 24, 39, 0.7);
-            --border-ui: rgba(255, 255, 255, 0.08);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --cyan-glow: #06b6d4;
-            --cyan-hover: #0891b2;
-            --emerald-alert: #10b981;
-            --amber-alert: #f59e0b;
+            --neon-green: #34C759;
+            --neon-cyan: #4ADE80;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-main: #f8fafc;
+            --text-muted: #a7bcae;
+            --gauge-bg: rgba(255, 255, 255, 0.1);
+            --nav-bg: rgba(10, 15, 12, 0.6);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        
         body {
-            background-color: var(--bg-base);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
+            background-color: #050a07;
+            background-image: 
+                linear-gradient(to bottom, rgba(2, 6, 4, 0.1), rgba(2, 6, 4, 0.6)),
+                url('https://images.unsplash.com/photo-1536147116438-62679a5e01f2?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden; 
+            display: flex; 
             justify-content: center;
             align-items: center;
-            padding: 24px;
-            background-image: radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.12), transparent 50%),
-                              radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.04), transparent 50%);
         }
 
-        .container {
+        /* ================= FRAMEWORK GLASSMORPHISM UTAMA ================= */
+        .app-container {
             width: 100%;
-            max-width: 420px;
-            background: var(--panel-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-ui);
-            border-radius: 28px;
-            padding: 36px;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 6px;
-            background: linear-gradient(to right, #ffffff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header p {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .form-group {
-            margin-bottom: 22px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        .input-control {
-            width: 100%;
-            background: rgba(13, 18, 30, 0.7);
-            border: 1px solid var(--border-ui);
-            border-radius: 14px;
-            padding: 14px 16px;
-            color: var(--text-primary);
-            font-size: 14px;
-            outline: none;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            appearance: none;
-            -webkit-appearance: none;
-        }
-
-        .input-control:focus {
-            border-color: var(--cyan-glow);
-            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
-        }
-
-        select.input-control {
-            cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            background-size: 14px;
-            padding-right: 44px;
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: var(--cyan-glow);
-            color: #0b0f19;
-            border: none;
-            border-radius: 14px;
-            padding: 15px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 6px;
-        }
-
-        .btn-submit:hover {
-            background: var(--cyan-hover);
-            transform: translateY(-1px);
-        }
-
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-
-        .btn-submit:disabled {
-            background: #1e293b;
-            color: var(--text-secondary);
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .status-box {
-            margin-top: 32px;
-            padding: 18px;
-            background: rgba(10, 15, 26, 0.5);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .status-row {
+            height: 100vh;
+            max-width: 500px;
+            /* Transparansi ditipiskan dan blur dikurangi agar daun terlihat jelas */
+            background: rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.05);
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            font-size: 13px;
-            gap: 12px;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
         }
 
-        .status-label {
-            color: var(--text-secondary);
-            white-space: nowrap;
+        @media (min-width: 500px) {
+            .app-container {
+                height: 95vh;
+                border-radius: 40px;
+            }
         }
 
-        .status-value {
-            font-weight: 500;
-            text-align: right;
-            word-break: break-word;
+        /* ================= ANIMASI SPLASH SCREEN ================= */
+        #splash-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 10, 7, 0.95); backdrop-filter: blur(30px); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            animation: hideSplash 1s ease-in-out 3.5s forwards;
         }
+        .splash-logo { font-size: 60px; color: var(--neon-green); text-shadow: 0 0 30px rgba(52, 199, 89, 0.6); animation: spinAndScale 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .splash-text { text-align: center; margin-top: 20px; opacity: 0; transform: translateY(30px); animation: slideUpFade 1.5s ease-out 1s forwards; }
+        .splash-text h1 { font-size: 32px; font-weight: 800; letter-spacing: 2px; }
+        .splash-text p { font-size: 14px; color: var(--neon-cyan); letter-spacing: 4px; margin-top: 5px; text-transform: uppercase;}
+        
+        @keyframes spinAndScale { 0% { transform: rotate(-180deg) scale(0); opacity: 0; } 50% { transform: rotate(20deg) scale(1.2); opacity: 1; } 100% { transform: rotate(0deg) scale(1); opacity: 1; } }
+        @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
+        @keyframes hideSplash { to { opacity: 0; visibility: hidden; } }
 
-        .badge-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        /* ================= HEADER UTAMA ================= */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 30px 25px 15px; flex-shrink: 0; }
+        .header h2 { font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 22px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);}
+        .header p { color: var(--neon-cyan); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;}
+        
+        .btn-voice {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--neon-green);
+            color: var(--neon-green); padding: 10px 18px; border-radius: 30px;
+            cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; font-size: 13px;
+            transition: 0.3s; box-shadow: 0 0 15px rgba(52, 199, 89, 0.15); backdrop-filter: blur(10px);
         }
+        .btn-voice.listening { background: var(--neon-cyan); border-color: var(--neon-cyan); color: #000; animation: pulseMic 1s infinite; }
+        @keyframes pulseMic { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
 
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
+        #voice-feedback { position: absolute; top: 85px; right: 25px; font-size: 12px; color: var(--neon-cyan); font-style: italic; z-index: 10; font-weight: 600; text-shadow: 0 2px 5px rgba(0,0,0,0.8);}
+
+        /* ================= MAIN DASHBOARD (SCROLLABLE) ================= */
+        .main-content { flex-grow: 1; overflow-y: auto; padding: 15px 25px 110px; }
+        
+        /* Panel dalam kaca */
+        .glass-panel {
+            background: var(--glass-bg); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 24px; padding: 22px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+            margin-bottom: 20px; position: relative; overflow: hidden;
+            transition: 0.3s ease;
         }
+        .glass-panel:hover { background: rgba(15, 25, 20, 0.55); border-color: rgba(255,255,255,0.25); }
 
-        .badge-idle { background: rgba(6, 182, 212, 0.12); color: var(--cyan-glow); }
-        .badge-processing { background: rgba(245, 158, 11, 0.12); color: var(--amber-alert); }
+        .ai-summary-panel::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); }
+        .panel-title { font-size: 13px; font-weight: 800; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .ai-text { font-size: 15px; line-height: 1.7; color: var(--text-main); font-weight: 400; }
+        .ai-text span.highlight { color: var(--neon-green); font-weight: 700; text-shadow: 0 0 8px rgba(52, 199, 89, 0.4);}
+
+        .gauges-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .gauge-container { text-align: center; position: relative; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 18px 10px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .gauge-svg { width: 100%; max-width: 90px; transform: rotate(-90deg); filter: drop-shadow(0 0 6px rgba(52,199,89,0.3)); margin: 0 auto; display: block; }
+        
+        .gauge-bg { fill: none; stroke: var(--gauge-bg); stroke-width: 14; stroke-linecap: round; }
+        .gauge-val { fill: none; stroke: var(--neon-green); stroke-width: 14; stroke-linecap: round; stroke-dasharray: 251.2; stroke-dashoffset: 251.2; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .gauge-blue .gauge-val { stroke: #00f0ff; filter: drop-shadow(0 0 6px rgba(0,240,255,0.3));}
+        .gauge-yellow .gauge-val { stroke: #ffd700; filter: drop-shadow(0 0 6px rgba(255,215,0,0.3));}
+        .gauge-red .gauge-val { stroke: #ff4d4d; filter: drop-shadow(0 0 6px rgba(255,77,77,0.3));}
+        
+        .gauge-center { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); }
+        .gauge-center .value { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; }
+        .gauge-center .unit { font-size: 11px; color: var(--text-muted); display: block; margin-top: -3px;}
+        .gauge-label { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 1.5px; }
+
+        /* ================= BOTTOM NAVIGATION BAR ================= */
+        .bottom-nav {
+            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
+            width: 85%; height: 75px;
+            background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 40px;
+            display: flex; justify-content: space-around; align-items: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 100;
+        }
+        
+        .nav-item { color: var(--text-muted); font-size: 24px; cursor: pointer; transition: 0.3s; padding: 15px; }
+        .nav-item:hover { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        
+        .nav-center {
+            position: relative; top: -30px;
+            width: 75px; height: 75px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-green), #047857);
+            color: #000; font-size: 32px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 15px 25px rgba(52, 199, 89, 0.4);
+            border: 6px solid #0a0f0c; cursor: pointer; transition: 0.3s;
+        }
+        .nav-center:hover { transform: scale(1.08); box-shadow: 0 20px 35px rgba(52, 199, 89, 0.6); }
+
+        /* ================= MODAL PANELS ================= */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            z-index: 200; opacity: 0; visibility: hidden; transition: 0.3s;
+            border-radius: inherit;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-content {
+            position: absolute; bottom: -100%; left: 0; width: 100%; max-height: 85%;
+            background: rgba(12, 18, 14, 0.95); backdrop-filter: blur(25px);
+            border-top: 1px solid var(--neon-green); 
+            border-radius: 40px 40px 0 0;
+            padding: 35px 25px; z-index: 201; transition: 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+        }
+        @media (min-width: 500px) { .modal-content { border-radius: 40px 40px 40px 40px; } }
+        .modal-content.active { bottom: 0; }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .modal-title { font-size: 18px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 12px; letter-spacing: 1px;}
+        .btn-close { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; transition: 0.3s;}
+        .btn-close:hover { background: #ff4d4d; }
+
+        .relay-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.05); }
+        .relay-item div { font-weight: 600; font-size: 15px; }
+        .switch { position: relative; display: inline-block; width: 64px; height: 34px; }
+        .switch input { display: none; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); border-radius: 34px; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: #fff; border-radius: 50%; transition: .4s; box-shadow: 0 2px 5px rgba(0,0,0,0.3);}
+        input:checked + .slider { background-color: rgba(52, 199, 89, 0.4); border: 1px solid var(--neon-green); }
+        input:checked + .slider:before { transform: translateX(30px); background-color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+
+        .form-control { width: 100%; padding: 18px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 16px; margin-bottom: 18px; outline: none; font-size: 15px; transition: 0.3s;}
+        .form-control:focus { border-color: var(--neon-cyan); background: rgba(0,0,0,0.6); }
+        .btn-submit { width: 100%; padding: 18px; background: linear-gradient(135deg, #0080ff, #00f0ff); color: #000; border: none; border-radius: 16px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; margin-top: 10px; transition: 0.3s;}
+        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 240, 255, 0.3);}
+
+        .scanner-container { position: relative; width: 100%; aspect-ratio: 3/4; background: #000; border-radius: 20px; overflow: hidden; border: 2px solid var(--neon-green); box-shadow: 0 10px 30px rgba(52, 199, 89, 0.2);}
+        #camera-feed { width: 100%; height: 100%; object-fit: cover; }
+        .scanning-laser { position: absolute; top: 10%; left: 0%; width: 100%; height: 3px; background: var(--neon-green); box-shadow: 0 0 20px 5px var(--neon-green); animation: scan 2s infinite linear; display: none;}
+        @keyframes scan { 0% { top: 0%; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { top: 100%; opacity:0; } }
+        #ai-text { margin-top: 20px; font-size: 14px; line-height: 1.6; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);}
+
+        /* Elemen Pop Up Notifikasi */
+        #toast-notification {
+            visibility: hidden; min-width: 250px; background: linear-gradient(135deg, var(--neon-green), #047857); 
+            color: #000; text-align: center; border-radius: 30px; padding: 15px 25px; 
+            position: absolute; z-index: 9999; left: 50%; bottom: 120px; transform: translateX(-50%); 
+            font-weight: 800; font-size: 14px; box-shadow: 0 15px 30px rgba(52, 199, 89, 0.5); 
+            opacity: 0; transition: opacity 0.3s, bottom 0.3s;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h1>Device Provisioning</h1>
-        <p>Pengontrol Jaringan Nirkabel Perangkat IoT</p>
-    </div>
+    <div class="app-container">
 
-    <div class="form-group">
-        <label for="ssid-select">Jaringan Terdeteksi Perangkat</label>
-        <select id="ssid-select" class="input-control">
-            <option value="">Memuat enkapsulasi sinyal dari ESP32...</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="wifi-password">Kunci Keamanan Jaringan (Password)</label>
-        <input type="password" id="wifi-password" class="input-control" placeholder="Masukkan kata sandi Wi-Fi">
-    </div>
-
-    <button id="submit-btn" class="btn-submit" disabled>Hubungkan Perangkat</button>
-
-    <div class="status-box">
-        <div class="status-row">
-            <span class="status-label">Log Aktivitas:</span>
-            <span id="device-status" class="status-value">Menghubungkan ke server cloud...</span>
+        <div id="splash-screen">
+            <i class="fas fa-leaf splash-logo"></i>
+            <div class="splash-text">
+                <h1>NATURE CORE</h1>
+                <p>Smart Garden Abiyoso</p>
+                <div style="font-size: 10px; color: #64748b; margin-top: 15px;">DEVELOPED BY AMDF &copy; 2026</div>
+            </div>
         </div>
-        <div class="badge-container">
-            <span class="status-label" style="font-size: 13px;">Mode Perangkat:</span>
-            <span id="command-status" class="badge badge-idle">IDLE</span>
+
+        <div class="header">
+            <div>
+                <h2>ABIYOSO</h2>
+                <p>Data Environment Core</p>
+            </div>
+            <div>
+                <button class="btn-voice" id="btn-voice"><i class="fas fa-microphone"></i> Suara</button>
+            </div>
         </div>
-    </div>
-</div>
+        <div id="voice-feedback"></div>
 
-<script type="module">
-    // Menggunakan Firebase JavaScript SDK v10 CDN resmi
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    // Integrasi Konfigurasi Web App Database Milik Anda Secara Eksak
-    const firebaseConfig = {
-        apiKey: "AIzaSyBmZR9PeOQIdHBwV5USTxU3_41KfIbw9tQ",
-        authDomain: "kwtabiyoso.firebaseapp.com",
-        databaseURL: "https://kwtabiyoso-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "kwtabiyoso",
-        storageBucket: "kwtabiyoso.firebasestorage.app",
-        messagingSenderId: "1074176217961",
-        appId: "1:1074176217961:web:1ffea7385504149f5da3f8",
-        measurementId: "G-BMC8S9KX3D"
-    };
-
-    // Alur Inisialisasi Layanan Cloud Proyek
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const referenceDokumen = doc(db, "wifi_provisioning", "device_01");
-
-    const ssidSelect = document.getElementById('ssid-select');
-    const passwordInput = document.getElementById('wifi-password');
-    const submitBtn = document.getElementById('submit-btn');
-    const txtDeviceStatus = document.getElementById('device-status');
-    const txtCommandStatus = document.getElementById('command-status');
-
-    // Pengamat Real-Time (Listener) Terhadap Perubahan Status di Firestore
-    onSnapshot(referenceDokumen, (snapshot) => {
-        if (snapshot.exists()) {
-            const dataFirestore = snapshot.data();
+        <div class="main-content">
             
-            // Perbarui Log Teks Status Perangkat
-            if (dataFirestore.status) {
-                txtDeviceStatus.innerText = dataFirestore.status;
-            }
+            <div class="glass-panel ai-summary-panel">
+                <div class="panel-title"><i class="fas fa-brain"></i> Ekstraksi Data Lingkungan</div>
+                <div class="ai-text" id="env-status">
+                    Menghubungkan ke sensor Node ESP32. Sedang mengambil sampel data biologis...
+                </div>
+            </div>
 
-            // Perbarui Indikator Badge Command Sistem
-            if (dataFirestore.command) {
-                txtCommandStatus.innerText = dataFirestore.command;
-                txtCommandStatus.className = 'badge'; // Reset kelas CSS awal
+            <div class="glass-panel">
+                <div class="panel-title" style="color: var(--text-muted);"><i class="fas fa-microchip"></i> Telemetry Sensor</div>
+                <div class="gauges-grid">
+                    
+                    <div class="gauge-container gauge-red">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <path class="gauge-bg" d="M 20 90 A 40 40 0 1 1 80 90"></path>
+                            <path class="gauge-val" id="arc-temp" d="M 20 90 A 40 40 0 1 1 80 90"></path>
+                        </svg>
+                        <div class="gauge-center"><span class="value" id="val-temp">--</span><span class="unit">°C</span></div>
+                        <div class="gauge-label">SUHU</div>
+                    </div>
+
+                    <div class="gauge-container gauge-blue">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <path class="gauge-bg" d="M 20 90 A 40 40 0 1 1 80 90"></path>
+                            <path class="gauge-val" id="arc-humid" d="M 20 90 A 40 40 0 1 1 80 90"></path>
+                        </svg>
+                        <div class="gauge-center"><span class="value" id="val-humid">--</span><span class="unit">%</span></div>
+                        <div class="gauge-label">KELEMBABAN</div>
+                    </div>
+
+                    <div class="gauge-container gauge-yellow">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <path class="gauge-bg" d="M 20 90 A 40 40 0 1 1 80 90"></path>
+                            <path class="gauge-val" id="arc-light" d="M 20 90 A 40 40 0 1 1 80 90"></path>
+                        </svg>
+                        <div class="gauge-center"><span class="value" id="val-light">--</span><span class="unit">ADC</span></div>
+                        <div class="gauge-label">CAHAYA</div>
+                    </div>
+
+                    <div class="gauge-container">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <path class="gauge-bg" d="M 20 90 A 40 40 0 1 1 80 90"></path>
+                            <path class="gauge-val" id="arc-soil" d="M 20 90 A 40 40 0 1 1 80 90"></path>
+                        </svg>
+                        <div class="gauge-center"><span class="value" id="val-soil">--</span><span class="unit">ADC</span></div>
+                        <div class="gauge-label">TANAH</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item" onclick="openModal('modal-manual')"><i class="fas fa-sliders-h"></i></div>
+            <div class="nav-center" onclick="openModal('modal-scan')"><i class="fas fa-expand"></i></div>
+            <div class="nav-item" onclick="openModal('modal-wifi')"><i class="fas fa-wifi"></i></div>
+        </div>
+
+        <div class="modal-overlay" id="modal-overlay" onclick="closeAllModals()"></div>
+
+        <div class="modal-content" id="modal-manual">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-sliders-h" style="color: var(--neon-green);"></i> Kontrol Eksekusi</div>
+                <button class="btn-close" onclick="closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="relay-item">
+                <div><i class="fas fa-water" style="color: #00f0ff; margin-right: 12px; font-size: 18px;"></i> Irigasi Pompa</div>
+                <label class="switch"><input type="checkbox" id="toggle-pump"><span class="slider"></span></label>
+            </div>
+            <div class="relay-item">
+                <div><i class="fas fa-lightbulb" style="color: #ffd700; margin-right: 12px; font-size: 18px;"></i> Lampu UV</div>
+                <label class="switch"><input type="checkbox" id="toggle-lamp"><span class="slider"></span></label>
+            </div>
+        </div>
+
+        <div class="modal-content" id="modal-scan">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-camera-rotate" style="color: var(--neon-green);"></i> AI Plant Vision</div>
+                <button class="btn-close" onclick="closeCamera()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="scanner-container">
+                <video id="camera-feed" autoplay playsinline></video>
+                <div class="scanning-laser" id="laser-scan"></div>
+            </div>
+            <button class="btn-submit" id="btn-capture" style="margin-top: 20px; background: linear-gradient(135deg, #047857, #10b981); color: #fff;"><i class="fas fa-search" style="margin-right: 8px;"></i> Analisa Gambar</button>
+            <div id="ai-text">Pusatkan tanaman di area kamera...</div>
+            <canvas id="snapshot-canvas" style="display:none;"></canvas>
+        </div>
+
+        <div class="modal-content" id="modal-wifi">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-network-wired" style="color: var(--neon-cyan);"></i> Provisioning Jaringan</div>
+                <button class="btn-close" onclick="closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <select id="ssid-select" class="form-control"><option value="">Menunggu daftar ESP32...</option></select>
+            <input type="password" id="wifi-password" class="form-control" placeholder="Akses Kunci Jaringan">
+            <button class="btn-submit" id="btn-connect" disabled>SINKRONISASI JARINGAN</button>
+            <div style="font-family: monospace; font-size: 12px; margin-top: 15px; color: var(--neon-cyan); background: rgba(0,240,255,0.1); padding: 12px; border-radius: 8px; border: 1px dashed var(--neon-cyan);" id="status-text">>_ Status Standby.</div>
+        </div>
+
+        <div id="toast-notification">
+            <i class="fas fa-check-circle" style="margin-right: 5px;"></i> <span id="toast-message">Perintah Berhasil!</span>
+        </div>
+
+    </div> 
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmZR9PeOQIdHBwV5USTxU3_41KfIbw9tQ",
+            authDomain: "kwtabiyoso.firebaseapp.com",
+            databaseURL: "https://kwtabiyoso-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kwtabiyoso",
+            storageBucket: "kwtabiyoso.firebasestorage.app",
+            messagingSenderId: "1074176217961",
+            appId: "1:1074176217961:web:1ffea7385504149f5da3f8"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const docRef = doc(db, "wifi_provisioning", "device_01");
+
+        const overlay = document.getElementById('modal-overlay');
+        window.openModal = function(id) {
+            closeAllModals();
+            overlay.classList.add('active');
+            document.getElementById(id).classList.add('active');
+            if(id === 'modal-scan') openCamera();
+        };
+        window.closeAllModals = function() {
+            overlay.classList.remove('active');
+            document.querySelectorAll('.modal-content').forEach(m => m.classList.remove('active'));
+            closeCamera();
+        };
+
+        const GAUGE_MAX = 251.2;
+        function setGauge(idText, idArc, value, min, max) {
+            let safeVal = Math.max(min, Math.min(value, max));
+            let pct = (safeVal - min) / (max - min);
+            document.getElementById(idArc).style.strokeDashoffset = GAUGE_MAX - (GAUGE_MAX * pct);
+            document.getElementById(idText).innerText = max > 1000 ? Math.round(value) : value.toFixed(1);
+        }
+
+        function updateKesimpulanInformatif(t, h, l, s) {
+            let kesimpulan = "Status Lingkungan: ";
+            
+            if(s < 1500) kesimpulan += "<span class='highlight'>Tanah mulai kering</span>, sistem merekomendasikan aktivasi pompa irigasi. ";
+            else if(s > 3000) kesimpulan += "Kelembaban tanah berlebih, <span class='highlight'>potensi genangan air tinggi</span>. ";
+            else kesimpulan += "<span class='highlight'>Kelembaban tanah ideal</span>. ";
+
+            if(t > 32) kesimpulan += "Suhu ruang terdeteksi <span class='highlight'>panas (" + t.toFixed(1) + "°C)</span>. ";
+            else if(t < 20) kesimpulan += "Suhu udara <span class='highlight'>cukup dingin</span>. ";
+            else kesimpulan += "Kondisi suhu termal <span class='highlight'>sangat sejuk dan kondusif</span>. ";
+
+            if(l < 1000) kesimpulan += "Intensitas pencahayaan alami sangat rendah, <span class='highlight'>menghambat fotosintesis</span>.";
+            else kesimpulan += "Distribusi cahaya ke klorofil <span class='highlight'>cukup terpenuhi</span>.";
+
+            document.getElementById('env-status').innerHTML = kesimpulan;
+        }
+
+        let blockRelayEvent = false;
+        const tPump = document.getElementById('toggle-pump');
+        const tLamp = document.getElementById('toggle-lamp');
+
+        onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const d = docSnap.data();
                 
-                if (dataFirestore.command === 'IDLE') {
-                    txtCommandStatus.classList.add('badge-idle');
-                    // Tombol aktif kembali hanya jika dropdown SSID telah dipilih user
-                    submitBtn.disabled = !ssidSelect.value;
+                let temp = d.sensor_temp || 0; let hum = d.sensor_humid || 0;
+                let light = d.sensor_light || 0; let soil = d.sensor_soil || 0;
+
+                setGauge('val-temp', 'arc-temp', temp, 0, 50);
+                setGauge('val-humid', 'arc-humid', hum, 0, 100);
+                setGauge('val-light', 'arc-light', light, 0, 4095);
+                setGauge('val-soil', 'arc-soil', soil, 0, 4095);
+
+                updateKesimpulanInformatif(temp, hum, light, soil);
+
+                blockRelayEvent = true;
+                if(d.relay_pump !== undefined) tPump.checked = d.relay_pump;
+                if(d.relay_lamp !== undefined) tLamp.checked = d.relay_lamp;
+                blockRelayEvent = false;
+
+                const ssidSel = document.getElementById('ssid-select');
+                const btnConn = document.getElementById('btn-connect');
+                if(d.status) document.getElementById('status-text').innerText = ">_ " + d.status;
+                if(d.command === 'IDLE' && ssidSel.value) btnConn.disabled = false;
+                else if (d.command === 'PROCESSING') btnConn.disabled = true;
+
+                if(d.ssids && d.ssids !== "Tidak ada jaringan") {
+                    const cVal = ssidSel.value;
+                    ssidSel.innerHTML = '<option value="">-- Pilih Jaringan Target --</option>';
+                    d.ssids.split(',').forEach(s => {
+                        if(s.trim()){ let o = document.createElement('option'); o.value=o.innerText=s.trim(); ssidSel.appendChild(o); }
+                    });
+                    if(cVal) ssidSel.value = cVal;
+                }
+            }
+        });
+
+        // Fungsi Toast Pop Up
+        function showToast(message) {
+            const toast = document.getElementById("toast-notification");
+            document.getElementById("toast-message").innerText = message;
+            toast.style.visibility = "visible";
+            toast.style.opacity = "1";
+            toast.style.bottom = "140px";
+            
+            setTimeout(() => { 
+                toast.style.opacity = "0";
+                toast.style.bottom = "120px";
+                setTimeout(() => { toast.style.visibility = "hidden"; }, 300);
+            }, 3000);
+        }
+
+        // Kontrol Manual DB
+        async function updateRelayDB(p, l, source = "Manual") { 
+            try { 
+                await updateDoc(docRef, { relay_pump: p, relay_lamp: l }); 
+                showToast(`Perintah ${source} Terkirim!`);
+            } catch(e){
+                showToast("Gagal mengirim perintah!");
+                console.error(e);
+            } 
+        }
+
+        tPump.addEventListener('change', () => { if(!blockRelayEvent) updateRelayDB(tPump.checked, tLamp.checked, "Manual"); });
+        tLamp.addEventListener('change', () => { if(!blockRelayEvent) updateRelayDB(tPump.checked, tLamp.checked, "Manual"); });
+
+        // Voice Command
+        const btnVoice = document.getElementById('btn-voice');
+        const vFeed = document.getElementById('voice-feedback');
+        const SpeechRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecog) {
+            const recog = new SpeechRecog(); recog.lang = 'id-ID'; recog.interimResults = false;
+            btnVoice.addEventListener('click', () => { recog.start(); btnVoice.classList.add('listening'); vFeed.innerText = "Mendengarkan..."; });
+            recog.onresult = (e) => {
+                const txt = e.results[0][0].transcript.toLowerCase(); vFeed.innerText = `"${txt}"`;
+                let pt = tPump.checked, lt = tLamp.checked, rec = false;
+                if (txt.includes('siram') || txt.includes('pompa') || txt.includes('air')) {
+                    if (txt.includes('hidup') || txt.includes('nyala')) { pt = true; rec = true; }
+                    else if (txt.includes('mati') || txt.includes('henti')) { pt = false; rec = true; }
+                }
+                if (txt.includes('lampu') || txt.includes('cahaya')) {
+                    if (txt.includes('hidup') || txt.includes('nyala')) { lt = true; rec = true; }
+                    else if (txt.includes('mati') || txt.includes('padam')) { lt = false; rec = true; }
+                }
+                if (rec) { 
+                    tPump.checked = pt; 
+                    tLamp.checked = lt; 
+                    updateRelayDB(pt, lt, "Suara"); 
+                }
+            };
+            recog.onspeechend = () => { recog.stop(); btnVoice.classList.remove('listening'); setTimeout(()=> vFeed.innerText="", 3000); };
+            recog.onerror = () => { btnVoice.classList.remove('listening'); vFeed.innerText = "Gagal mendengar."; };
+        } else { btnVoice.style.display = 'none'; }
+
+        // Gemini AI Vision
+        const GEMINI_KEY = "AQ.Ab8RN6J1vc6uIwaN1Ku9U5SbsQqjgdgTt3NxOlfXSI__3fp-VQ"; 
+        let stream = null;
+        const video = document.getElementById('camera-feed');
+        const laser = document.getElementById('laser-scan');
+        const btnCapture = document.getElementById('btn-capture');
+
+        async function openCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream;
+            } catch(e) { document.getElementById('ai-text').innerText = "Izin kamera ditolak browser."; }
+        }
+        window.closeCamera = function() {
+            if(stream) { stream.getTracks().forEach(t => t.stop()); video.srcObject = null; laser.style.display = 'none'; }
+        }
+
+        btnCapture.addEventListener('click', async () => {
+            if(!stream || GEMINI_KEY === "") { alert("API Key Gemini belum diisi di kode HTML!"); return; }
+            laser.style.display = 'block';
+            btnCapture.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+            
+            const cvs = document.getElementById('snapshot-canvas');
+            cvs.width = video.videoWidth; cvs.height = video.videoHeight;
+            cvs.getContext('2d').drawImage(video, 0, 0);
+            const b64 = cvs.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+            const payload = { contents: [{ parts: [
+                { text: "Anda ahli botani perkebunan. Analisis foto ini singkat saja: 1. Status kesehatan tanaman. 2. Identifikasi awal hama/penyakit jika ada. Jawab langsung dalam bahasa Indonesia." },
+                { inline_data: { mime_type: "image/jpeg", data: b64 } }
+            ]}]};
+
+            try {
+                // MENGGUNAKAN API V1 STABIL AGAR TIDAK DITOLAK SERVER V1BETA// Pastikan menggunakan v1beta jika v1 mengembalikan error 404
+const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' }, 
+    body: JSON.stringify(payload)
+});
+                const out = await res.json();
+                
+                if (!res.ok || out.error) {
+                    throw new Error(out.error ? out.error.message : "HTTP Error " + res.status);
+                }
+
+                if (out.candidates && out.candidates.length > 0) {
+                    let txt = out.candidates[0].content.parts[0].text;
+                    document.getElementById('ai-text').innerHTML = txt.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--neon-green)">$1</strong>');
                 } else {
-                    txtCommandStatus.classList.add('badge-processing');
-                    submitBtn.disabled = true; // Kunci input tombol ketika sistem sedang sibuk mengeksekusi koneksi
+                    throw new Error("Respons dari Google kosong.");
                 }
+
+            } catch(e) { 
+                console.error("Detail Error Gemini:", e);
+                document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Ditolak Server:</b> ${e.message}</span>`; 
             }
+            
+            laser.style.display = 'none';
+            btnCapture.innerHTML = '<i class="fas fa-search" style="margin-right: 8px;"></i> Analisa Ulang Gambar';
+        });
 
-            // Memproses Data String untuk Populasi Komponen Dropdown Menu Wi-Fi
-            if (dataFirestore.ssids) {
-                const nilaiSeleksiSaatIni = ssidSelect.value;
-                ssidSelect.innerHTML = '<option value="">-- Pilih Wi-Fi Terdeteksi --</option>';
-                
-                const arrayJaringan = dataFirestore.ssids.split(',');
-                arrayJaringan.forEach(ssid => {
-                    const ssidBersih = ssid.trim();
-                    if (ssidBersih) {
-                        const elemenOpsi = document.createElement('option');
-                        elemenOpsi.value = ssidBersih;
-                        elemenOpsi.innerText = ssidBersih;
-                        ssidSelect.appendChild(elemenOpsi);
-                    }
-                });
-                
-                // Menjaga agar pilihan user tidak ter-reset secara mendadak saat sinkronisasi data background terjadi
-                if (nilaiSeleksiSaatIni && dataFirestore.ssids.includes(nilaiSeleksiSaatIni)) {
-                    ssidSelect.value = nilaiSeleksiSaatIni;
-                }
-            }
-        } else {
-            txtDeviceStatus.innerText = "Basis dokumen data belum terinisialisasi oleh ESP32.";
-        }
-    });
+        // Kontrol Wi-Fi
+        const sSel = document.getElementById('ssid-select'); const btnWifi = document.getElementById('btn-connect');
+        sSel.addEventListener('change', () => btnWifi.disabled = !sSel.value);
+        btnWifi.addEventListener('click', async () => {
+            btnWifi.disabled = true;
+            try { await updateDoc(docRef, { target_ssid: sSel.value, target_password: document.getElementById('wifi-password').value, command: "CONNECT", status: "Instruksi ditransmisikan..." }); } catch(e){}
+        });
 
-    // Validasi interaktif perubahan dropdown menu
-    ssidSelect.addEventListener('change', () => {
-        if (ssidSelect.value && txtCommandStatus.innerText === 'IDLE') {
-            submitBtn.disabled = false;
-        } else {
-            submitBtn.disabled = true;
-        }
-    });
-
-    // Event Handler untuk Pengiriman Kredensial Baru ke Cloud Database
-    submitBtn.addEventListener('click', async () => {
-        const ssidTerpilih = ssidSelect.value;
-        const passwordInputan = passwordInput.value;
-
-        if (!ssidTerpilih) return;
-
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Mengirim Kredensial...";
-
-        try {
-            // Memperbarui isi field dokumen Firestore
-            await updateDoc(referenceDokumen, {
-                target_ssid: ssidTerpilih,
-                target_password: passwordInputan,
-                command: "CONNECT",
-                status: "Menunggu perangkat memproses instruksi pemindahan sinyal jaringan..."
-            });
-            passwordInput.value = ""; // Menghapus isian field input password demi keamanan data privasi pengguna
-        } catch (error) {
-            console.error("Gagal melakukan injeksi instruksi data ke Firestore:", error);
-            alert("Terjadi kegagalan transmisi kontrol data ke server cloud.");
-        } finally {
-            submitBtn.innerText = "Hubungkan Perangkat";
-        }
-    });
-</script>
-
+    </script>
 </body>
 </html>
