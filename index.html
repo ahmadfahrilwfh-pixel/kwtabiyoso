@@ -42,7 +42,6 @@
             width: 100%;
             height: 100vh;
             max-width: 500px;
-            /* Transparansi ditipiskan dan blur dikurangi agar daun terlihat jelas */
             background: rgba(0, 0, 0, 0.05);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
@@ -317,6 +316,9 @@
                 <div class="scanning-laser" id="laser-scan"></div>
             </div>
             <button class="btn-submit" id="btn-capture" style="margin-top: 20px; background: linear-gradient(135deg, #047857, #10b981); color: #fff;"><i class="fas fa-search" style="margin-right: 8px;"></i> Analisa Gambar</button>
+            
+            <button class="btn-submit" onclick="flipCamera()" style="margin-top: 10px; background: rgba(255,255,255,0.05); color: var(--neon-cyan); border: 1px solid var(--glass-border);"><i class="fas fa-sync-alt" style="margin-right: 8px;"></i> Putar Kamera</button>
+            
             <div id="ai-text">Pusatkan tanaman di area kamera...</div>
             <canvas id="snapshot-canvas" style="display:none;"></canvas>
         </div>
@@ -433,7 +435,6 @@
             }
         });
 
-        // Fungsi Toast Pop Up
         function showToast(message) {
             const toast = document.getElementById("toast-notification");
             document.getElementById("toast-message").innerText = message;
@@ -448,7 +449,6 @@
             }, 3000);
         }
 
-        // Kontrol Manual DB
         async function updateRelayDB(p, l, source = "Manual") { 
             try { 
                 await updateDoc(docRef, { relay_pump: p, relay_lamp: l }); 
@@ -492,31 +492,49 @@
 
         // Gemini AI Vision
         const GEMINI_KEY = "AIzaSyA_RjY8u0ZdZEch3zOsz_RyROSbM-_vXPg"; 
-  let stream = null;
+        let stream = null;
+        let currentFacingMode = "environment"; // Hardening: Prioritas kamera belakang HP
+        
         const video = document.getElementById('camera-feed');
         const laser = document.getElementById('laser-scan');
         const btnCapture = document.getElementById('btn-capture');
 
-        async function openCamera() {
+        // Hardening Kamera: Mampu mencari fallback mode jika hardware tidak memadai
+        window.openCamera = async function() {
+            if(stream) { stream.getTracks().forEach(t => t.stop()); }
+            
             try {
                 document.getElementById('ai-text').innerText = "Sedang memuat kamera...";
-                // Memaksa browser mencari kamera apa pun yang tersedia di PC/HP
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: currentFacingMode } 
+                });
                 video.srcObject = stream;
                 document.getElementById('ai-text').innerText = "Kamera aktif. Pusatkan tanaman di area kamera...";
             } catch(e) { 
-                console.error("Error Akses Kamera:", e);
-                // INI AKAN MENAMPILKAN PENYEBAB ASLI JIKA KAMERA GAGAL NYALA
-                document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Gagal Akses Kamera:</b> ${e.name} - ${e.message}</span>`;
-                stream = null;
+                try {
+                    // Fallback jika dibuka di PC yang tidak punya environment/user mode
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    document.getElementById('ai-text').innerText = "Kamera PC aktif.";
+                } catch(err) {
+                    console.error("Error Akses Kamera:", err);
+                    document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Gagal Akses Kamera:</b> ${err.name} - ${err.message}</span>`;
+                    stream = null;
+                }
             }
-        }
+        };
 
         window.closeCamera = function() {
             if(stream) { stream.getTracks().forEach(t => t.stop()); video.srcObject = null; laser.style.display = 'none'; stream = null;}
         }
 
-      btnCapture.addEventListener('click', async () => {
+        // Logic memutar kamera (depan/belakang)
+        window.flipCamera = function() {
+            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+            openCamera();
+        };
+
+        btnCapture.addEventListener('click', async () => {
             if(!stream) { alert("Kamera belum aktif atau izin diblokir oleh browser!"); return; }
             if(GEMINI_KEY === "") { alert("API Key Gemini belum diisi!"); return; }
             
@@ -535,31 +553,28 @@
             ]}]};
 
             try {
-                // 1. CARA BRUTAL: Tanya langsung ke Google, model apa saja yang tersedia untuk API Key ini
+                // Hardening API: Auto-discovery model dari server Google
                 const checkRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
                 const checkData = await checkRes.json();
                 
                 if (checkData.error) throw new Error("Gagal cek model: " + checkData.error.message);
 
-                // 2. Filter dan ambil model pertama yang memiliki kata "gemini" dan mendukung pembuatan konten
                 let targetModel = "";
                 if (checkData.models) {
                     for (let m of checkData.models) {
                         if (m.name.includes("gemini") && m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")) {
                             targetModel = m.name; 
-                            if (m.name.includes("flash")) break; // Jika ada versi flash, prioritaskan!
+                            if (m.name.includes("flash")) break; // Prioritas versi flash jika tersedia
                         }
                     }
                 }
 
-                // Jika Google membalas tapi daftarnya kosong
                 if (!targetModel) {
                     throw new Error("API Key valid, tapi Project Google Cloud Anda TIDAK DIIZINKAN mengakses model Gemini apapun.");
                 }
 
-                document.getElementById('ai-text').innerHTML = `Ketemu! Memakai model: <b>${targetModel.replace('models/', '')}</b>...`;
+                document.getElementById('ai-text').innerHTML = `Memakai model: <b>${targetModel.replace('models/', '')}</b>...`;
 
-                // 3. Tembak API menggunakan model yang pasti ada di akunmu
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${GEMINI_KEY}`, {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
@@ -572,7 +587,6 @@
                     throw new Error(out.error ? out.error.message : "HTTP Error " + res.status);
                 }
 
-                // 4. Cetak hasil akhirnya!
                 if (out.candidates && out.candidates.length > 0) {
                     let txt = out.candidates[0].content.parts[0].text;
                     document.getElementById('ai-text').innerHTML = txt.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--neon-green)">$1</strong>');
