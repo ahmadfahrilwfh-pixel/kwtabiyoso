@@ -499,7 +499,7 @@
 
         async function openCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
             } catch(e) { document.getElementById('ai-text').innerText = "Izin kamera ditolak browser."; }
         }
