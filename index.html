@@ -492,23 +492,41 @@
 
         // Gemini AI Vision
         const GEMINI_KEY = "AQ.Ab8RN6J1vc6uIwaN1Ku9U5SbsQqjgdgTt3NxOlfXSI__3fp-VQ"; 
-        let stream = null;
+  let stream = null;
         const video = document.getElementById('camera-feed');
         const laser = document.getElementById('laser-scan');
         const btnCapture = document.getElementById('btn-capture');
 
         async function openCamera() {
             try {
+                document.getElementById('ai-text').innerText = "Sedang memuat kamera...";
+                // Memaksa browser mencari kamera apa pun yang tersedia di PC/HP
                 stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
-            } catch(e) { document.getElementById('ai-text').innerText = "Izin kamera ditolak browser."; }
+                document.getElementById('ai-text').innerText = "Kamera aktif. Pusatkan tanaman di area kamera...";
+            } catch(e) { 
+                console.error("Error Akses Kamera:", e);
+                // INI AKAN MENAMPILKAN PENYEBAB ASLI JIKA KAMERA GAGAL NYALA
+                document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Gagal Akses Kamera:</b> ${e.name} - ${e.message}</span>`;
+                stream = null;
+            }
         }
+
         window.closeCamera = function() {
-            if(stream) { stream.getTracks().forEach(t => t.stop()); video.srcObject = null; laser.style.display = 'none'; }
+            if(stream) { stream.getTracks().forEach(t => t.stop()); video.srcObject = null; laser.style.display = 'none'; stream = null;}
         }
 
         btnCapture.addEventListener('click', async () => {
-            if(!stream || GEMINI_KEY === "") { alert("API Key Gemini belum diisi di kode HTML!"); return; }
+            // Pengecekan kita pisah agar peringatannya jelas
+            if(!stream) { 
+                alert("Kamera belum aktif! Tunggu sampai gambar muncul atau cek error di layar."); 
+                return; 
+            }
+            if(GEMINI_KEY === "") { 
+                alert("API Key Gemini belum diisi!"); 
+                return; 
+            }
+
             laser.style.display = 'block';
             btnCapture.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
             
