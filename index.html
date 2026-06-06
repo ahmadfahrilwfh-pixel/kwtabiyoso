@@ -340,282 +340,308 @@
 
     </div> 
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBmZR9PeOQIdHBwV5USTxU3_41KfIbw9tQ",
-            authDomain: "kwtabiyoso.firebaseapp.com",
-            databaseURL: "https://kwtabiyoso-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "kwtabiyoso",
-            storageBucket: "kwtabiyoso.firebasestorage.app",
-            messagingSenderId: "1074176217961",
-            appId: "1:1074176217961:web:1ffea7385504149f5da3f8"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const docRef = doc(db, "wifi_provisioning", "device_01");
+    const firebaseConfig = {
+        apiKey: "AIzaSyBmZR9PeOQIdHBwV5USTxU3_41KfIbw9tQ",
+        authDomain: "kwtabiyoso.firebaseapp.com",
+        databaseURL: "https://kwtabiyoso-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "kwtabiyoso",
+        storageBucket: "kwtabiyoso.firebasestorage.app",
+        messagingSenderId: "1074176217961",
+        appId: "1:1074176217961:web:1ffea7385504149f5da3f8"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const docRef = doc(db, "wifi_provisioning", "device_01");
 
-        const overlay = document.getElementById('modal-overlay');
-        window.openModal = function(id) {
-            closeAllModals();
-            overlay.classList.add('active');
-            document.getElementById(id).classList.add('active');
-            if(id === 'modal-scan') openCamera();
-        };
-        window.closeAllModals = function() {
-            overlay.classList.remove('active');
-            document.querySelectorAll('.modal-content').forEach(m => m.classList.remove('active'));
-            closeCamera();
-        };
+    const overlay = document.getElementById('modal-overlay');
+    window.openModal = function(id) {
+        closeAllModals();
+        overlay.classList.add('active');
+        document.getElementById(id).classList.add('active');
+        if(id === 'modal-scan') openCamera();
+    };
+    window.closeAllModals = function() {
+        overlay.classList.remove('active');
+        document.querySelectorAll('.modal-content').forEach(m => m.classList.remove('active'));
+        closeCamera();
+    };
 
-        const GAUGE_MAX = 251.2;
-        function setGauge(idText, idArc, value, min, max) {
-            let safeVal = Math.max(min, Math.min(value, max));
-            let pct = (safeVal - min) / (max - min);
-            document.getElementById(idArc).style.strokeDashoffset = GAUGE_MAX - (GAUGE_MAX * pct);
-            document.getElementById(idText).innerText = max > 1000 ? Math.round(value) : value.toFixed(1);
-        }
+    const GAUGE_MAX = 251.2;
+    function setGauge(idText, idArc, value, min, max) {
+        let safeVal = Math.max(min, Math.min(value, max));
+        let pct = (safeVal - min) / (max - min);
+        document.getElementById(idArc).style.strokeDashoffset = GAUGE_MAX - (GAUGE_MAX * pct);
+        document.getElementById(idText).innerText = max > 1000 ? Math.round(value) : value.toFixed(1);
+    }
 
-        function updateKesimpulanInformatif(t, h, l, s) {
-            let kesimpulan = "Status Lingkungan: ";
-            
-            if(s < 1500) kesimpulan += "<span class='highlight'>Tanah mulai kering</span>, sistem merekomendasikan aktivasi pompa irigasi. ";
-            else if(s > 3000) kesimpulan += "Kelembaban tanah berlebih, <span class='highlight'>potensi genangan air tinggi</span>. ";
-            else kesimpulan += "<span class='highlight'>Kelembaban tanah ideal</span>. ";
-
-            if(t > 32) kesimpulan += "Suhu ruang terdeteksi <span class='highlight'>panas (" + t.toFixed(1) + "°C)</span>. ";
-            else if(t < 20) kesimpulan += "Suhu udara <span class='highlight'>cukup dingin</span>. ";
-            else kesimpulan += "Kondisi suhu termal <span class='highlight'>sangat sejuk dan kondusif</span>. ";
-
-            if(l < 1000) kesimpulan += "Intensitas pencahayaan alami sangat rendah, <span class='highlight'>menghambat fotosintesis</span>.";
-            else kesimpulan += "Distribusi cahaya ke klorofil <span class='highlight'>cukup terpenuhi</span>.";
-
-            document.getElementById('env-status').innerHTML = kesimpulan;
-        }
-
-        let blockRelayEvent = false;
-        const tPump = document.getElementById('toggle-pump');
-        const tLamp = document.getElementById('toggle-lamp');
-
-        onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const d = docSnap.data();
-                
-                let temp = d.sensor_temp || 0; let hum = d.sensor_humid || 0;
-                let light = d.sensor_light || 0; let soil = d.sensor_soil || 0;
-
-                setGauge('val-temp', 'arc-temp', temp, 0, 50);
-                setGauge('val-humid', 'arc-humid', hum, 0, 100);
-                setGauge('val-light', 'arc-light', light, 0, 4095);
-                setGauge('val-soil', 'arc-soil', soil, 0, 4095);
-
-                updateKesimpulanInformatif(temp, hum, light, soil);
-
-                blockRelayEvent = true;
-                if(d.relay_pump !== undefined) tPump.checked = d.relay_pump;
-                if(d.relay_lamp !== undefined) tLamp.checked = d.relay_lamp;
-                blockRelayEvent = false;
-
-                const ssidSel = document.getElementById('ssid-select');
-                const btnConn = document.getElementById('btn-connect');
-                if(d.status) document.getElementById('status-text').innerText = ">_ " + d.status;
-                if(d.command === 'IDLE' && ssidSel.value) btnConn.disabled = false;
-                else if (d.command === 'PROCESSING') btnConn.disabled = true;
-
-                if(d.ssids && d.ssids !== "Tidak ada jaringan") {
-                    const cVal = ssidSel.value;
-                    ssidSel.innerHTML = '<option value="">-- Pilih Jaringan Target --</option>';
-                    d.ssids.split(',').forEach(s => {
-                        if(s.trim()){ let o = document.createElement('option'); o.value=o.innerText=s.trim(); ssidSel.appendChild(o); }
-                    });
-                    if(cVal) ssidSel.value = cVal;
-                }
-            }
-        });
-
-        function showToast(message) {
-            const toast = document.getElementById("toast-notification");
-            document.getElementById("toast-message").innerText = message;
-            toast.style.visibility = "visible";
-            toast.style.opacity = "1";
-            toast.style.bottom = "140px";
-            
-            setTimeout(() => { 
-                toast.style.opacity = "0";
-                toast.style.bottom = "120px";
-                setTimeout(() => { toast.style.visibility = "hidden"; }, 300);
-            }, 3000);
-        }
-
-        async function updateRelayDB(p, l, source = "Manual") { 
-            try { 
-                await updateDoc(docRef, { relay_pump: p, relay_lamp: l }); 
-                showToast(`Perintah ${source} Terkirim!`);
-            } catch(e){
-                showToast("Gagal mengirim perintah!");
-                console.error(e);
-            } 
-        }
-
-        tPump.addEventListener('change', () => { if(!blockRelayEvent) updateRelayDB(tPump.checked, tLamp.checked, "Manual"); });
-        tLamp.addEventListener('change', () => { if(!blockRelayEvent) updateRelayDB(tPump.checked, tLamp.checked, "Manual"); });
-
-        // Voice Command
-        const btnVoice = document.getElementById('btn-voice');
-        const vFeed = document.getElementById('voice-feedback');
-        const SpeechRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecog) {
-            const recog = new SpeechRecog(); recog.lang = 'id-ID'; recog.interimResults = false;
-            btnVoice.addEventListener('click', () => { recog.start(); btnVoice.classList.add('listening'); vFeed.innerText = "Mendengarkan..."; });
-            recog.onresult = (e) => {
-                const txt = e.results[0][0].transcript.toLowerCase(); vFeed.innerText = `"${txt}"`;
-                let pt = tPump.checked, lt = tLamp.checked, rec = false;
-                if (txt.includes('siram') || txt.includes('pompa') || txt.includes('air')) {
-                    if (txt.includes('hidup') || txt.includes('nyala')) { pt = true; rec = true; }
-                    else if (txt.includes('mati') || txt.includes('henti')) { pt = false; rec = true; }
-                }
-                if (txt.includes('lampu') || txt.includes('cahaya')) {
-                    if (txt.includes('hidup') || txt.includes('nyala')) { lt = true; rec = true; }
-                    else if (txt.includes('mati') || txt.includes('padam')) { lt = false; rec = true; }
-                }
-                if (rec) { 
-                    tPump.checked = pt; 
-                    tLamp.checked = lt; 
-                    updateRelayDB(pt, lt, "Suara"); 
-                }
-            };
-            recog.onspeechend = () => { recog.stop(); btnVoice.classList.remove('listening'); setTimeout(()=> vFeed.innerText="", 3000); };
-            recog.onerror = () => { btnVoice.classList.remove('listening'); vFeed.innerText = "Gagal mendengar."; };
-        } else { btnVoice.style.display = 'none'; }
-
-        // Gemini AI Vision
-       // ✅ INI AMAN DARI SCANNING BOT
-const part1 = "AIza";
-const part2 = "SyBV9NeiuRswp";
-const part3 = "EwY2s_2mH1H_";
-const part4 = "j-ErO2DSss";
-const GEMINI_KEY = part1 + part2 + part3 + part4;
-        let stream = null;
-        let currentFacingMode = "environment"; // Hardening: Prioritas kamera belakang HP
+    function updateKesimpulanInformatif(t, h, l, s) {
+        let kesimpulan = "Status Lingkungan: ";
         
-        const video = document.getElementById('camera-feed');
-        const laser = document.getElementById('laser-scan');
-        const btnCapture = document.getElementById('btn-capture');
+        if(s < 1500) kesimpulan += "<span class='highlight'>Tanah mulai kering</span>, sistem merekomendasikan aktivasi pompa irigasi. ";
+        else if(s > 3000) kesimpulan += "Kelembaban tanah berlebih, <span class='highlight'>potensi genangan air tinggi</span>. ";
+        else kesimpulan += "<span class='highlight'>Kelembaban tanah ideal</span>. ";
 
-        // Hardening Kamera: Mampu mencari fallback mode jika hardware tidak memadai
-        window.openCamera = async function() {
-            if(stream) { stream.getTracks().forEach(t => t.stop()); }
+        if(t > 32) kesimpulan += "Suhu ruang terdeteksi <span class='highlight'>panas (" + t.toFixed(1) + "°C)</span>. ";
+        else if(t < 20) kesimpulan += "Suhu udara <span class='highlight'>cukup dingin</span>. ";
+        else kesimpulan += "Kondisi suhu termal <span class='highlight'>sangat sejuk dan kondusif</span>. ";
+
+        if(l < 1000) kesimpulan += "Intensitas pencahayaan alami sangat rendah, <span class='highlight'>menghambat fotosintesis</span>.";
+        else kesimpulan += "Distribusi cahaya ke klorofil <span class='highlight'>cukup terpenuhi</span>.";
+
+        document.getElementById('env-status').innerHTML = kesimpulan;
+    }
+
+    let blockRelayEvent = false;
+    const tPump = document.getElementById('toggle-pump');
+    const tLamp = document.getElementById('toggle-lamp');
+
+    onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const d = docSnap.data();
             
-            try {
-                document.getElementById('ai-text').innerText = "Sedang memuat kamera...";
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: currentFacingMode } 
+            let temp = d.sensor_temp || 0; let hum = d.sensor_humid || 0;
+            let light = d.sensor_light || 0; let soil = d.sensor_soil || 0;
+
+            setGauge('val-temp', 'arc-temp', temp, 0, 50);
+            setGauge('val-humid', 'arc-humid', hum, 0, 100);
+            setGauge('val-light', 'arc-light', light, 0, 4095);
+            setGauge('val-soil', 'arc-soil', soil, 0, 4095);
+
+            updateKesimpulanInformatif(temp, hum, light, soil);
+
+            blockRelayEvent = true;
+            if(d.relay_pump !== undefined) tPump.checked = d.relay_pump;
+            if(d.relay_lamp !== undefined) tLamp.checked = d.relay_lamp;
+            blockRelayEvent = false;
+
+            const ssidSel = document.getElementById('ssid-select');
+            const btnConn = document.getElementById('btn-connect');
+            if(d.status) document.getElementById('status-text').innerText = ">_ " + d.status;
+            if(d.command === 'IDLE' && ssidSel.value) btnConn.disabled = false;
+            else if (d.command === 'PROCESSING') btnConn.disabled = true;
+
+            if(d.ssids && d.ssids !== "Tidak ada jaringan") {
+                const cVal = ssidSel.value;
+                ssidSel.innerHTML = '<option value="">-- Pilih Jaringan Target --</option>';
+                d.ssids.split(',').forEach(s => {
+                    if(s.trim()){ let o = document.createElement('option'); o.value=o.innerText=s.trim(); ssidSel.appendChild(o); }
                 });
-                video.srcObject = stream;
-                document.getElementById('ai-text').innerText = "Kamera aktif. Pusatkan tanaman di area kamera...";
-            } catch(e) { 
-                try {
-                    // Fallback jika dibuka di PC yang tidak punya environment/user mode
-                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    video.srcObject = stream;
-                    document.getElementById('ai-text').innerText = "Kamera PC aktif.";
-                } catch(err) {
-                    console.error("Error Akses Kamera:", err);
-                    document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Gagal Akses Kamera:</b> ${err.name} - ${err.message}</span>`;
-                    stream = null;
-                }
+                if(cVal) ssidSel.value = cVal;
             }
-        };
-
-        window.closeCamera = function() {
-            if(stream) { stream.getTracks().forEach(t => t.stop()); video.srcObject = null; laser.style.display = 'none'; stream = null;}
         }
+    });
 
-        // Logic memutar kamera (depan/belakang)
-        window.flipCamera = function() {
-            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
-            openCamera();
+    function showToast(message) {
+        const toast = document.getElementById("toast-notification");
+        document.getElementById("toast-message").innerText = message;
+        toast.style.visibility = "visible";
+        toast.style.opacity = "1";
+        toast.style.bottom = "140px";
+        
+        setTimeout(() => { 
+            toast.style.opacity = "0";
+            toast.style.bottom = "120px";
+            setTimeout(() => { toast.style.visibility = "hidden"; }, 300);
+        }, 3000);
+    }
+
+    async function updateRelayDB(p, l, source = "Manual") { 
+        try { 
+            await updateDoc(docRef, { relay_pump: p, relay_lamp: l }); 
+            showToast(`Perintah ${source} Terkirim!`);
+        } catch(e){
+            showToast("Gagal mengirim perintah!");
+            console.error(e);
+        } 
+    }
+
+    tPump.addEventListener('change', () => { if(!blockRelayEvent) updateRelayDB(tPump.checked, tLamp.checked, "Manual"); });
+    tLamp.addEventListener('change', () => { if(!blockRelayEvent) updateRelayDB(tPump.checked, tLamp.checked, "Manual"); });
+
+    // Voice Command - Diperbarui dengan Logika Fleksibel
+    const btnVoice = document.getElementById('btn-voice');
+    const vFeed = document.getElementById('voice-feedback');
+    const SpeechRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecog) {
+        const recog = new SpeechRecog(); recog.lang = 'id-ID'; recog.interimResults = false;
+        btnVoice.addEventListener('click', () => { recog.start(); btnVoice.classList.add('listening'); vFeed.innerText = "Mendengarkan..."; });
+        
+        recog.onresult = (e) => {
+            const txt = e.results[0][0].transcript.toLowerCase();
+            
+            let pt = tPump.checked;
+            let lt = tLamp.checked;
+            let isValidCommand = false;
+
+            // 1. KAMUS SINONIM
+            const cmdNyala = ['nyala', 'hidup', 'aktif', 'on', 'berikan'];
+            const cmdMati  = ['mati', 'padam', 'henti', 'off', 'stop', 'jangan'];
+            
+            const targetPompa = ['pompa', 'air', 'irigasi', 'tanaman', 'kebun'];
+            const targetLampu = ['lampu', 'cahaya', 'uv', 'penerangan', 'terang'];
+
+            const hasWords = (arr, text) => arr.some(word => text.includes(word));
+
+            // 2. LOGIKA EVALUASI FLEKSIBEL
+            if (txt.includes('siram')) {
+                pt = true; 
+                isValidCommand = true;
+            }
+
+            if (hasWords(targetPompa, txt)) {
+                if (hasWords(cmdNyala, txt)) { pt = true; isValidCommand = true; }
+                else if (hasWords(cmdMati, txt)) { pt = false; isValidCommand = true; }
+            }
+
+            if (hasWords(targetLampu, txt)) {
+                if (hasWords(cmdNyala, txt)) { lt = true; isValidCommand = true; }
+                else if (hasWords(cmdMati, txt)) { lt = false; isValidCommand = true; }
+            }
+
+            // 3. EKSEKUSI ATAU TOLAK
+            if (isValidCommand) {
+                vFeed.innerText = `Memahami: "${txt}"`;
+                vFeed.style.color = "var(--neon-green)";
+                
+                tPump.checked = pt; 
+                tLamp.checked = lt; 
+                updateRelayDB(pt, lt, "Suara");
+            } else {
+                vFeed.innerText = `"${txt}" - Perintah tidak sesuai!`;
+                vFeed.style.color = "#ff4d4d";
+                showToast("Pesan perintah tidak sesuai!");
+            }
+
+            setTimeout(() => { vFeed.style.color = "var(--neon-cyan)"; }, 3000);
         };
 
-        btnCapture.addEventListener('click', async () => {
-            if(!stream) { alert("Kamera belum aktif atau izin diblokir oleh browser!"); return; }
-            if(GEMINI_KEY === "") { alert("API Key Gemini belum diisi!"); return; }
-            
-            laser.style.display = 'block';
-            btnCapture.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-            document.getElementById('ai-text').innerHTML = "Mencari model AI yang diizinkan oleh Google...";
-            
-            const cvs = document.getElementById('snapshot-canvas');
-            cvs.width = video.videoWidth; cvs.height = video.videoHeight;
-            cvs.getContext('2d').drawImage(video, 0, 0);
-            const b64 = cvs.toDataURL('image/jpeg', 0.8).split(',')[1];
+        recog.onspeechend = () => { recog.stop(); btnVoice.classList.remove('listening'); setTimeout(()=> vFeed.innerText="", 3000); };
+        recog.onerror = () => { btnVoice.classList.remove('listening'); vFeed.innerText = "Gagal mendengar."; };
+    } else { btnVoice.style.display = 'none'; }
 
-            const payload = { contents: [{ parts: [
-                { text: "Anda ahli botani perkebunan. Analisis foto ini singkat saja: 1. Status kesehatan tanaman. 2. Identifikasi awal hama/penyakit jika ada. Jawab langsung dalam bahasa Indonesia." },
-                { inline_data: { mime_type: "image/jpeg", data: b64 } }
-            ]}]};
+    // Gemini AI Vision
+    const part1 = "AIza";
+    const part2 = "SyBV9NeiuRswp";
+    const part3 = "EwY2s_2mH1H_";
+    const part4 = "j-ErO2DSss";
+    const GEMINI_KEY = part1 + part2 + part3 + part4;
+    let stream = null;
+    let currentFacingMode = "environment"; 
+    
+    const video = document.getElementById('camera-feed');
+    const laser = document.getElementById('laser-scan');
+    const btnCapture = document.getElementById('btn-capture');
 
+    window.openCamera = async function() {
+        if(stream) { stream.getTracks().forEach(t => t.stop()); }
+        
+        try {
+            document.getElementById('ai-text').innerText = "Sedang memuat kamera...";
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: currentFacingMode } 
+            });
+            video.srcObject = stream;
+            document.getElementById('ai-text').innerText = "Kamera aktif. Pusatkan tanaman di area kamera...";
+        } catch(e) { 
             try {
-                // Hardening API: Auto-discovery model dari server Google
-                const checkRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
-                const checkData = await checkRes.json();
-                
-                if (checkData.error) throw new Error("Gagal cek model: " + checkData.error.message);
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                document.getElementById('ai-text').innerText = "Kamera PC aktif.";
+            } catch(err) {
+                console.error("Error Akses Kamera:", err);
+                document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Gagal Akses Kamera:</b> ${err.name} - ${err.message}</span>`;
+                stream = null;
+            }
+        }
+    };
 
-                let targetModel = "";
-                if (checkData.models) {
-                    for (let m of checkData.models) {
-                        if (m.name.includes("gemini") && m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")) {
-                            targetModel = m.name; 
-                            if (m.name.includes("flash")) break; // Prioritas versi flash jika tersedia
-                        }
+    window.closeCamera = function() {
+        if(stream) { stream.getTracks().forEach(t => t.stop()); video.srcObject = null; laser.style.display = 'none'; stream = null;}
+    }
+
+    window.flipCamera = function() {
+        currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+        openCamera();
+    };
+
+    btnCapture.addEventListener('click', async () => {
+        if(!stream) { alert("Kamera belum aktif atau izin diblokir oleh browser!"); return; }
+        if(GEMINI_KEY === "") { alert("API Key Gemini belum diisi!"); return; }
+        
+        laser.style.display = 'block';
+        btnCapture.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+        document.getElementById('ai-text').innerHTML = "Mencari model AI yang diizinkan oleh Google...";
+        
+        const cvs = document.getElementById('snapshot-canvas');
+        cvs.width = video.videoWidth; cvs.height = video.videoHeight;
+        cvs.getContext('2d').drawImage(video, 0, 0);
+        const b64 = cvs.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+        const payload = { contents: [{ parts: [
+            { text: "Anda ahli botani perkebunan. Analisis foto ini singkat saja: 1. Status kesehatan tanaman. 2. Identifikasi awal hama/penyakit jika ada. Jawab langsung dalam bahasa Indonesia." },
+            { inline_data: { mime_type: "image/jpeg", data: b64 } }
+        ]}]};
+
+        try {
+            const checkRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
+            const checkData = await checkRes.json();
+            
+            if (checkData.error) throw new Error("Gagal cek model: " + checkData.error.message);
+
+            let targetModel = "";
+            if (checkData.models) {
+                for (let m of checkData.models) {
+                    if (m.name.includes("gemini") && m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")) {
+                        targetModel = m.name; 
+                        if (m.name.includes("flash")) break; 
                     }
                 }
-
-                if (!targetModel) {
-                    throw new Error("API Key valid, tapi Project Google Cloud Anda TIDAK DIIZINKAN mengakses model Gemini apapun.");
-                }
-
-                document.getElementById('ai-text').innerHTML = `Memakai model: <b>${targetModel.replace('models/', '')}</b>...`;
-
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${GEMINI_KEY}`, {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(payload)
-                });
-                
-                const out = await res.json();
-                
-                if (!res.ok || out.error) {
-                    throw new Error(out.error ? out.error.message : "HTTP Error " + res.status);
-                }
-
-                if (out.candidates && out.candidates.length > 0) {
-                    let txt = out.candidates[0].content.parts[0].text;
-                    document.getElementById('ai-text').innerHTML = txt.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--neon-green)">$1</strong>');
-                } else {
-                    throw new Error("Respons dari Google kosong.");
-                }
-
-            } catch(e) { 
-                console.error("Detail Error Gemini:", e);
-                document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Error:</b> ${e.message}</span>`; 
             }
+
+            if (!targetModel) {
+                throw new Error("API Key valid, tapi Project Google Cloud Anda TIDAK DIIZINKAN mengakses model Gemini apapun.");
+            }
+
+            document.getElementById('ai-text').innerHTML = `Memakai model: <b>${targetModel.replace('models/', '')}</b>...`;
+
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${GEMINI_KEY}`, {
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(payload)
+            });
             
-            laser.style.display = 'none';
-            btnCapture.innerHTML = '<i class="fas fa-search" style="margin-right: 8px;"></i> Analisa Ulang Gambar';
-        });
+            const out = await res.json();
+            
+            if (!res.ok || out.error) {
+                throw new Error(out.error ? out.error.message : "HTTP Error " + res.status);
+            }
 
-        // Kontrol Wi-Fi
-        const sSel = document.getElementById('ssid-select'); const btnWifi = document.getElementById('btn-connect');
-        sSel.addEventListener('change', () => btnWifi.disabled = !sSel.value);
-        btnWifi.addEventListener('click', async () => {
-            btnWifi.disabled = true;
-            try { await updateDoc(docRef, { target_ssid: sSel.value, target_password: document.getElementById('wifi-password').value, command: "CONNECT", status: "Instruksi ditransmisikan..." }); } catch(e){}
-        });
+            if (out.candidates && out.candidates.length > 0) {
+                let txt = out.candidates[0].content.parts[0].text;
+                document.getElementById('ai-text').innerHTML = txt.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--neon-green)">$1</strong>');
+            } else {
+                throw new Error("Respons dari Google kosong.");
+            }
 
-    </script>
-</body>
-</html>
+        } catch(e) { 
+            console.error("Detail Error Gemini:", e);
+            document.getElementById('ai-text').innerHTML = `<span style="color: #ff4d4d;"><b>Error:</b> ${e.message}</span>`; 
+        }
+        
+        laser.style.display = 'none';
+        btnCapture.innerHTML = '<i class="fas fa-search" style="margin-right: 8px;"></i> Analisa Ulang Gambar';
+    });
+
+    // Kontrol Wi-Fi
+    const sSel = document.getElementById('ssid-select'); const btnWifi = document.getElementById('btn-connect');
+    sSel.addEventListener('change', () => btnWifi.disabled = !sSel.value);
+    btnWifi.addEventListener('click', async () => {
+        btnWifi.disabled = true;
+        try { await updateDoc(docRef, { target_ssid: sSel.value, target_password: document.getElementById('wifi-password').value, command: "CONNECT", status: "Instruksi ditransmisikan..." }); } catch(e){}
+    });
+
+</script>
